@@ -1,0 +1,73 @@
+
+<h2>Magias</h2>
+<input type="text" id="filtro-magias" class="form-control mb-3" placeholder="Pesquisar magias">
+<div id="lista-magias" class="row g-3"></div>
+
+<script>
+jQuery(document).ready(function () {
+  jQuery.get('componentes/magia-modal/magia-modal.html', function (modalHtml) {
+    jQuery('body').append(modalHtml);
+
+    jQuery.getJSON('/data/magias.json', function (dados) {
+      const lista = jQuery('#lista-magias');
+
+      const criarResumo = (texto, limite = 100) => {
+        if (!texto || typeof texto !== 'string') return '';
+        return texto.length > limite ? texto.substring(0, limite) + '...' : texto;
+      };
+
+      Object.values(dados).forEach(magia => {
+        const card = jQuery(`
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="card h-100 card-magia" style="cursor: pointer;">
+              <div class="card-body">
+                <h5 class="card-title">${magia.nome}</h5>
+                <p class="card-text mb-1"><strong>Tipo:</strong> ${magia.tipo}</p>
+                <p class="card-text mb-1"><strong>Círculo:</strong> ${magia.circulo}</p>
+                <p class="card-text mb-1"><strong>Escola:</strong> ${magia.escola}</p>
+                <p class="card-text text-muted small">${criarResumo(magia.descricao)}</p>
+              </div>
+            </div>
+          </div>
+        `);
+
+        card.on('click', function () {
+          jQuery('#modalMagiaLabel').text(magia.nome);
+
+          const corpo = `
+            <p><strong>Tipo:</strong> ${magia.tipo}</p>
+            <p><strong>Círculo:</strong> ${magia.circulo}</p>
+            <p><strong>Escola:</strong> ${magia.escola}</p>
+            <p><strong>Execução:</strong> ${magia.info?.execucao ?? '-'}</p>
+            <p><strong>Alcance:</strong> ${magia.info?.alcance ?? '-'}</p>
+            <p><strong>Alvo:</strong> ${magia.info?.alvo ?? '-'}</p>
+            <p><strong>Duração:</strong> ${magia.info?.duracao ?? '-'}</p>
+            <p><strong>Resistência:</strong> ${magia.info?.resistencia ?? '-'}</p>
+            <p><strong>Descrição:</strong> ${magia.descricao ?? ''}</p>
+          `;
+
+          jQuery('#modalMagiaBody').html(corpo);
+
+          const modal = new bootstrap.Modal(document.getElementById('modal-magia'));
+          modal.show();
+        });
+
+        if(magia.nome != undefined){
+            lista.append(card);
+        }
+
+      });
+
+      // Filtro
+      jQuery('#filtro-magias').on('input', function () {
+        const filtro = jQuery(this).val().toLowerCase().trim();
+
+        lista.children().each(function () {
+          const texto = jQuery(this).find('.card').text().toLowerCase();
+          jQuery(this).toggle(texto.includes(filtro));
+        });
+      });
+    });
+  });
+});
+</script>
