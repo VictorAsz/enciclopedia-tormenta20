@@ -1,0 +1,25 @@
+<h2>Magias</h2>
+<input type="text" id="filtro-magias" class="form-control mb-3" placeholder=" Pesquisar magias">
+<ul id="lista-magias" class="list-group"></ul>
+
+<script>
+  jQuery(document).ready(function () {
+    jQuery.getJSON('/data/magias.json', function (dados) {
+      const lista = jQuery('#lista-magias');
+
+      
+      Object.values(dados).forEach(classe => {   
+        lista.append(`<li class="list-group-item">${classe.nome}</li>`);
+      });
+
+      jQuery('#filtro-magias').on('input', function () {
+        const filtro = jQuery(this).val().toLowerCase();
+
+        lista.children().each(function () {
+          const texto = jQuery(this).text().toLowerCase();
+          jQuery(this).toggle(texto.includes(filtro));
+        });
+      });
+    });
+  });
+</script>
