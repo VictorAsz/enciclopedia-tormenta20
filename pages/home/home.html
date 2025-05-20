@@ -1,2 +1,18 @@
-    <h3>Bem-vindo à Enciclopédia de Tormenta!</h3>
-    <p>Use o menu acima para navegar entre os dados.</p>
+<div class="home-hero">
+  <div class="home-overlay"></div>
+  <div class="home-content">
+    <img src="assets/Logo-Tormenta.png" alt="Tormenta 20" class="home-logo">
+    <p class="home-description">
+      Explore a vasta coleção de magias do universo de Tormenta 20. Encontre feitiços, encantamentos e poderes arcanos para seu personagem ou campanha.
+    </p>
+    <button class="magic-button" id="btnVerMagias">Ver Magias</button>
+  </div>
+</div>
+
+
+<script>
+  $('#btnVerMagias').on('click', function () {
+    // Exemplo: navega para seção de magias ou troca conteúdo dinamicamente
+    $('[data-page="magias"]').trigger('click');
+  });
+</script>
