@@ -1,0 +1,97 @@
+/* HOME */
+.home-hero {
+  position: relative;
+  background: url("/assets/bg-capivara.jpg") center center/cover no-repeat;
+  min-height: calc(100vh - 64px); /* cobre toda a tela menos a navbar */
+  color: white;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+.home-content {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  padding: 20px;
+}
+
+.home-logo {
+  max-width: 300px;
+  margin-bottom: 30px;
+  animation: fadeIn 2s ease-in-out;
+}
+
+.home-description {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  animation: fadeInUp 2s ease-in-out;
+}
+
+.magic-button {
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background: linear-gradient(45deg, #dc3545, #6f42c1);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  box-shadow: 0 0 20px rgba(220, 53, 69, 0.6);
+  animation: pulse 2s infinite, float 6s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+
+.magic-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(220, 53, 69, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.6);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
