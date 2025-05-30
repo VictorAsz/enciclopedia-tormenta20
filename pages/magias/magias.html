@@ -1,77 +1,175 @@
-
- <link rel="stylesheet" href="/pages/magias/magias.css" />
+<link rel="stylesheet" href="/pages/magias/magias.css" />
 
 <div class="magias-container container mt-4">
   <h2>Magias</h2>
+
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <select id="filtro-tipo" class="form-select">
+        <option value="">Todos os Tipos</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select id="filtro-circulo" class="form-select">
+        <option value="">Todos os Círculos</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select id="filtro-escola" class="form-select">
+        <option value="">Todas as Escolas</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button id="limpar-filtros" class="btn btn-secondary w-100">Limpar Filtros</button>
+    </div>
+  </div>
+
   <input type="text" id="filtro-magias" class="form-control mb-3" placeholder="Pesquisar magias">
   <div id="lista-magias" class="row g-3"></div>
 </div>
+
 <script>
-jQuery(document).ready(function () {
-  jQuery.get('componentes/magia-modal/magia-modal.html', function (modalHtml) {
-    jQuery('body').append(modalHtml);
+  jQuery(document).ready(function () {
+    carregarModalEMagias();
 
-    jQuery.getJSON('/data/magias.json', function (dados) {
-      const lista = jQuery('#lista-magias');
+    function carregarModalEMagias() {
+      jQuery.get('componentes/magia-modal/magia-modal.html', function (modalHtml) {
+        jQuery('body').append(modalHtml);
+        carregarDadosMagias();
+      });
+    }
 
-      const criarResumo = (texto, limite = 100) => {
-        if (!texto || typeof texto !== 'string') return '';
-        return texto.length > limite ? texto.substring(0, limite) + '...' : texto;
-      };
+    function carregarDadosMagias() {
+      jQuery.getJSON('/data/magias.json', function (dados) {
+        const $lista = jQuery('#lista-magias');
+        const $filtroNome = jQuery('#filtro-magias');
+        const $filtroTipo = jQuery('#filtro-tipo');
+        const $filtroCirculo = jQuery('#filtro-circulo');
+        const $filtroEscola = jQuery('#filtro-escola');
+        const $btnLimpar = jQuery('#limpar-filtros');
 
-      Object.values(dados).forEach(magia => {
-        const card = jQuery(`
-          <div class="col-12 col-md-6 col-lg-3">
-            <div class="card h-100 card-magia" style="cursor: pointer;">
-              <div class="card-body">
-                <h5 class="card-title">${magia.nome}</h5>
-                <hr class"p-3">
-                <p class="card-text mb-1"><strong>Tipo:</strong> ${magia.tipo}</p>
-                <p class="card-text mb-1"><strong>Círculo:</strong> ${magia.circulo}</p>
-                <p class="card-text mb-1"><strong>Escola:</strong> ${magia.escola}</p>
-                <p class="card-text text-muted small">${criarResumo(magia.descricao)}</p>
-              </div>
+        const magias = Object.values(dados);
+        const cards = [];
+        const tipos = new Set();
+        const circulos = new Set();
+        const escolas = new Set();
+
+        magias.forEach((magia) => {
+          const card = criarCardMagia(magia, tipos, circulos, escolas);
+          if (card) {
+            cards.push(card);
+            $lista.append(card);
+          }
+        });
+
+        preencherOpcoesDeFiltro($filtroTipo, $filtroCirculo, $filtroEscola, tipos, circulos, escolas);
+        configurarFiltros($filtroNome, $filtroTipo, $filtroCirculo, $filtroEscola, $btnLimpar, cards);
+      });
+    }
+
+    function criarResumo(texto, limite = 100) {
+      return typeof texto === 'string' && texto.length > limite
+        ? texto.substring(0, limite) + '...'
+        : texto || '';
+    }
+
+    function criarLinhaInfo(label, valor) {
+      return valor ? `<p><strong>${label}:</strong> ${valor}</p>` : '';
+    }
+
+    function criarCardMagia(magia, tipos, circulos, escolas) {
+      const { nome, tipo, circulo, escola, descricao, info = {} } = magia;
+
+      if (!nome || !tipo || !circulo || !escola) return null;
+
+      tipos.add(tipo);
+      circulos.add(circulo);
+      escolas.add(escola);
+
+      const card = jQuery(`
+        <div class="col-12 col-md-6 col-lg-3"
+             data-tipo="${tipo}"
+             data-circulo="${circulo}"
+             data-escola="${escola}">
+          <div class="card h-100 card-magia" style="cursor: pointer;">
+            <div class="card-body">
+              <h5 class="card-title">${nome}</h5>
+              <hr class="p-3">
+              <p class="card-text mb-1"><strong>Tipo:</strong> ${tipo}</p>
+              <p class="card-text mb-1"><strong>Círculo:</strong> ${circulo}º</p>
+              <p class="card-text mb-1"><strong>Escola:</strong> ${escola}</p>
+              <p class="card-text text-muted small">${criarResumo(descricao)}</p>
             </div>
           </div>
-        `);
+        </div>
+      `);
 
-        card.on('click', function () {
-          jQuery('#modalMagiaLabel').text(magia.nome);
+      card.on('click', () => exibirModalMagia(nome, tipo, circulo, escola, descricao, info));
+      return card;
+    }
 
-          const corpo = `
-            <p><strong>Tipo:</strong> ${magia.tipo}</p>
-            <p><strong>Círculo:</strong> ${magia.circulo}</p>
-            <p><strong>Escola:</strong> ${magia.escola}</p>
-            <p><strong>Execução:</strong> ${magia.info?.execucao ?? '-'}</p>
-            <p><strong>Alcance:</strong> ${magia.info?.alcance ?? '-'}</p>
-            <p><strong>Alvo:</strong> ${magia.info?.alvo ?? '-'}</p>
-            <p><strong>Duração:</strong> ${magia.info?.duracao ?? '-'}</p>
-            <p><strong>Resistência:</strong> ${magia.info?.resistencia ?? '-'}</p>
-            <p><strong>Descrição:</strong> ${magia.descricao ?? ''}</p>
-          `;
+    function exibirModalMagia(nome, tipo, circulo, escola, descricao, info) {
+      jQuery('#modalMagiaLabel').text(nome);
+      jQuery('#modalMagiaBody').html(
+        criarLinhaInfo('Tipo', tipo) +
+        criarLinhaInfo('Círculo', `${circulo}º`) +
+        criarLinhaInfo('Escola', escola) +
+        criarLinhaInfo('Execução', info.execucao) +
+        criarLinhaInfo('Alcance', info.alcance) +
+        criarLinhaInfo('Alvo', info.alvo) +
+        criarLinhaInfo('Duração', info.duracao) +
+        criarLinhaInfo('Resistência', info.resistencia) +
+        criarLinhaInfo('Descrição', descricao)
+      );
 
-          jQuery('#modalMagiaBody').html(corpo);
+      new bootstrap.Modal(document.getElementById('modal-magia')).show();
+    }
 
-          const modal = new bootstrap.Modal(document.getElementById('modal-magia'));
-          modal.show();
+    function preencherOpcoesDeFiltro($tipo, $circulo, $escola, tipos, circulos, escolas) {
+      tipos.forEach((t) => $tipo.append(`<option value="${t}">${t}</option>`));
+      [...circulos].sort((a, b) => a - b).forEach((c) =>
+        $circulo.append(`<option value="${c}">${c}º</option>`)
+      );
+      escolas.forEach((e) => $escola.append(`<option value="${e}">${e}</option>`));
+    }
+
+    function configurarFiltros($nome, $tipo, $circulo, $escola, $btnLimpar, cards) {
+      function aplicarFiltros() {
+        const nomeFiltro = $nome.val().toLowerCase().trim();
+        const tipoFiltro = $tipo.val();
+        const circuloFiltro = $circulo.val();
+        const escolaFiltro = $escola.val();
+
+        cards.forEach((card) => {
+          const $el = jQuery(card);
+          const nome = $el.find('.card-title').text().toLowerCase();
+          const tipo = $el.data('tipo');
+          const circulo = $el.data('circulo').toString();
+          const escola = $el.data('escola');
+
+          const mostrar =
+            nome.includes(nomeFiltro) &&
+            (!tipoFiltro || tipoFiltro === tipo) &&
+            (!circuloFiltro || circuloFiltro === circulo) &&
+            (!escolaFiltro || escolaFiltro === escola);
+
+          $el.toggle(mostrar);
         });
+      }
 
-        if(magia.nome != undefined){
-            lista.append(card);
-        }
+      $nome.on('input', aplicarFiltros);
+      $tipo.on('change', aplicarFiltros);
+      $circulo.on('change', aplicarFiltros);
+      $escola.on('change', aplicarFiltros);
 
+      $btnLimpar.on('click', function () {
+        $nome.val('');
+        $tipo.val('');
+        $circulo.val('');
+        $escola.val('');
+        aplicarFiltros();
       });
-
-      // Filtro
-      jQuery('#filtro-magias').on('input', function () {
-        const filtro = jQuery(this).val().toLowerCase().trim();
-
-        lista.children().each(function () {
-          const texto = jQuery(this).find('.card').text().toLowerCase();
-          jQuery(this).toggle(texto.includes(filtro));
-        });
-      });
-    });
+    }
   });
-});
 </script>
+
