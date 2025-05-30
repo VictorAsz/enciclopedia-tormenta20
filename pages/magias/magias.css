@@ -116,6 +116,29 @@ h2 {
     animation: fadeIn 0.8s ease-in-out;
 }
 
+.magia-descricao{
+  font-family: 'Georgia', serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.magia-atributo{
+  font-family: 'Georgia', serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.carta-rpg h6 {
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.carta-rpg .bg-light {
+  background-color: #fdfcf5 !important;
+}
+
+
 
   @keyframes fadeIn {
   0% {
