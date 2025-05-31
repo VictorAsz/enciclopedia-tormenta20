@@ -25,11 +25,35 @@
   </div>
 
   <input type="text" id="filtro-magias" class="form-control mb-3" placeholder="Pesquisar magias">
+  
+  <!-- Informações de paginação -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div id="info-paginacao" class="text-muted"></div>
+    <div>
+      <select id="itens-por-pagina" class="form-select" style="width: auto; display: inline-block;">
+        <option value="8">8 por página</option>
+        <option value="16">16 por página</option>
+        <option value="24">24 por página</option>
+        <option value="32">32 por página</option>
+      </select>
+    </div>
+  </div>
+
   <div id="lista-magias" class="row g-3"></div>
+
+  <!-- Controles de paginação -->
+  <nav aria-label="Navegação da paginação" class="mt-4">
+    <ul id="paginacao" class="pagination justify-content-center"></ul>
+  </nav>
 </div>
 
 <script>
   jQuery(document).ready(function () {
+    let todasAsMagias = [];
+    let magiasFiltradas = [];
+    let paginaAtual = 1;
+    let itensPorPagina = 8;
+
     carregarModalEMagias();
 
     function carregarModalEMagias() {
@@ -41,29 +65,41 @@
 
     function carregarDadosMagias() {
       jQuery.getJSON('/data/magias.json', function (dados) {
-        const $lista = jQuery('#lista-magias');
         const $filtroNome = jQuery('#filtro-magias');
         const $filtroTipo = jQuery('#filtro-tipo');
         const $filtroCirculo = jQuery('#filtro-circulo');
         const $filtroEscola = jQuery('#filtro-escola');
         const $btnLimpar = jQuery('#limpar-filtros');
+        const $itensPorPagina = jQuery('#itens-por-pagina');
 
         const magias = Object.values(dados);
-        const cards = [];
         const tipos = new Set();
         const circulos = new Set();
         const escolas = new Set();
 
+        // Processar todas as magias
         magias.forEach((magia) => {
-          const card = criarCardMagia(magia, tipos, circulos, escolas);
-          if (card) {
-            cards.push(card);
-            $lista.append(card);
+          if (magia.nome && magia.tipo && magia.circulo && magia.escola) {
+            tipos.add(magia.tipo);
+            circulos.add(magia.circulo);
+            escolas.add(magia.escola);
+            todasAsMagias.push(magia);
           }
         });
 
+        magiasFiltradas = [...todasAsMagias];
+
         preencherOpcoesDeFiltro($filtroTipo, $filtroCirculo, $filtroEscola, tipos, circulos, escolas);
-        configurarFiltros($filtroNome, $filtroTipo, $filtroCirculo, $filtroEscola, $btnLimpar, cards);
+        configurarFiltros($filtroNome, $filtroTipo, $filtroCirculo, $filtroEscola, $btnLimpar);
+        
+        // Configurar mudança de itens por página
+        $itensPorPagina.on('change', function() {
+          itensPorPagina = parseInt(jQuery(this).val());
+          paginaAtual = 1;
+          exibirPagina();
+        });
+
+        exibirPagina();
       });
     }
 
@@ -73,21 +109,11 @@
         : texto || '';
     }
 
-
-    function criarCardMagia(magia, tipos, circulos, escolas) {
+    function criarCardMagia(magia) {
       const { nome, tipo, circulo, escola, descricao, info, melhoramentos = {} } = magia;
 
-      if (!nome || !tipo || !circulo || !escola) return null;
-
-      tipos.add(tipo);
-      circulos.add(circulo);
-      escolas.add(escola);
-
       const card = jQuery(`
-        <div class="col-12 col-md-6 col-lg-3"
-             data-tipo="${tipo}"
-             data-circulo="${circulo}"
-             data-escola="${escola}">
+        <div class="col-12 col-md-6 col-lg-3">
           <div class="card h-100 card-magia" style="cursor: pointer;">
             <div class="card-body">
               <h5 class="card-title">${nome}</h5>
@@ -105,59 +131,170 @@
       return card;
     }
 
+    function exibirPagina() {
+      const $lista = jQuery('#lista-magias');
+      const totalItens = magiasFiltradas.length;
+      const totalPaginas = Math.ceil(totalItens / itensPorPagina);
+      
+      // Ajustar página atual se necessário
+      if (paginaAtual > totalPaginas && totalPaginas > 0) {
+        paginaAtual = totalPaginas;
+      }
+      if (paginaAtual < 1) {
+        paginaAtual = 1;
+      }
+
+      const inicio = (paginaAtual - 1) * itensPorPagina;
+      const fim = inicio + itensPorPagina;
+      const magiasPagina = magiasFiltradas.slice(inicio, fim);
+
+      // Limpar lista atual
+      $lista.empty();
+
+      // Adicionar cards da página atual
+      magiasPagina.forEach((magia) => {
+        const card = criarCardMagia(magia);
+        $lista.append(card);
+      });
+
+      // Atualizar informações de paginação
+      atualizarInfoPaginacao(totalItens, inicio, fim);
+      
+      // Atualizar controles de paginação
+      atualizarControlesPaginacao(totalPaginas);
+    }
+
+    function atualizarInfoPaginacao(total, inicio, fim) {
+      const $info = jQuery('#info-paginacao');
+      if (total === 0) {
+        $info.text('Nenhuma magia encontrada');
+      } else {
+        const inicioReal = inicio + 1;
+        const fimReal = Math.min(fim, total);
+        $info.text(`Mostrando ${inicioReal}-${fimReal} de ${total} magias`);
+      }
+    }
+
+    function atualizarControlesPaginacao(totalPaginas) {
+      const $paginacao = jQuery('#paginacao');
+      $paginacao.empty();
+
+      if (totalPaginas <= 1) return;
+
+      // Botão anterior
+      const $anterior = jQuery(`
+        <li class="page-item ${paginaAtual === 1 ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-pagina="${paginaAtual - 1}">Anterior</a>
+        </li>
+      `);
+      $paginacao.append($anterior);
+
+      // Lógica para mostrar páginas
+      let paginasParaMostrar = [];
+      
+      if (totalPaginas <= 7) {
+        // Mostrar todas as páginas se forem 7 ou menos
+        for (let i = 1; i <= totalPaginas; i++) {
+          paginasParaMostrar.push(i);
+        }
+      } else {
+        // Mostrar páginas com ellipsis
+        if (paginaAtual <= 4) {
+          paginasParaMostrar = [1, 2, 3, 4, 5, '...', totalPaginas];
+        } else if (paginaAtual >= totalPaginas - 3) {
+          paginasParaMostrar = [1, '...', totalPaginas - 4, totalPaginas - 3, totalPaginas - 2, totalPaginas - 1, totalPaginas];
+        } else {
+          paginasParaMostrar = [1, '...', paginaAtual - 1, paginaAtual, paginaAtual + 1, '...', totalPaginas];
+        }
+      }
+
+      // Adicionar páginas
+      paginasParaMostrar.forEach((pagina) => {
+        if (pagina === '...') {
+          $paginacao.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
+        } else {
+          const $pagina = jQuery(`
+            <li class="page-item ${pagina === paginaAtual ? 'active' : ''}">
+              <a class="page-link" href="#" data-pagina="${pagina}">${pagina}</a>
+            </li>
+          `);
+          $paginacao.append($pagina);
+        }
+      });
+
+      // Botão próximo
+      const $proximo = jQuery(`
+        <li class="page-item ${paginaAtual === totalPaginas ? 'disabled' : ''}">
+          <a class="page-link" href="#" data-pagina="${paginaAtual + 1}">Próximo</a>
+        </li>
+      `);
+      $paginacao.append($proximo);
+
+      // Configurar eventos de clique
+      $paginacao.find('a.page-link').on('click', function(e) {
+        e.preventDefault();
+        const novaPagina = parseInt(jQuery(this).data('pagina'));
+        if (novaPagina && novaPagina !== paginaAtual && novaPagina >= 1 && novaPagina <= totalPaginas) {
+          paginaAtual = novaPagina;
+          exibirPagina();
+          // Scroll para o topo da lista
+          jQuery('#lista-magias').get(0).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+
     function criarColunaInfo(label, valor) {
       return valor
         ? `<div class="col-md-6"><p class="mb-1"><strong>${label}:</strong> <span class="magia-atributo">${valor} </span></p></div>`
         : '';
     }
 
+    function exibirModalMagia(nome, tipo, circulo, escola, descricao, info, melhoramentos = []) {
+      const atributosHTML = `
+        <div class="row g-3 mb-3">
+          ${criarColunaInfo('Tipo', tipo)}
+          ${criarColunaInfo('Círculo', `${circulo}º`)}
+          ${criarColunaInfo('Escola', escola)}
+          ${criarColunaInfo('Execução', info.execucao)}
+          ${criarColunaInfo('Alcance', info.alcance)}
+          ${criarColunaInfo('Alvo', info.alvo)}
+          ${criarColunaInfo('Duração', info.duracao)}
+          ${criarColunaInfo('Resistência', info.resistencia)}
+        </div>
+      `;
 
-function exibirModalMagia(nome, tipo, circulo, escola, descricao, info, melhoramentos = []) {
-  const atributosHTML = `
-    <div class="row g-3 mb-3">
-      ${criarColunaInfo('Tipo', tipo)}
-      ${criarColunaInfo('Círculo', `${circulo}º`)}
-      ${criarColunaInfo('Escola', escola)}
-      ${criarColunaInfo('Execução', info.execucao)}
-      ${criarColunaInfo('Alcance', info.alcance)}
-      ${criarColunaInfo('Alvo', info.alvo)}
-      ${criarColunaInfo('Duração', info.duracao)}
-      ${criarColunaInfo('Resistência', info.resistencia)}
-    </div>
-  `;
+      const descricaoHTML = descricao
+        ? `<div class="bg-light border rounded p-3 pt-0 mb-3" style="white-space: pre-line;">
+             <h6 class="fw-bold mb-2">Descrição</h6>
+             <p class="mb-0 magia-descricao">${descricao}</p>
+           </div>`
+        : '';
 
-  const descricaoHTML = descricao
-    ? `<div class="bg-light border rounded p-3 pt-0 mb-3" style="white-space: pre-line;">
-         <h6 class="fw-bold mb-2">Descrição</h6>
-         <p class="mb-0 magia-descricao">${descricao}</p>
-       </div>`
-    : '';
+      const melhoramentosHTML = melhoramentos?.length
+        ? `<div class="bg-white border rounded p-3">
+             <h6 class="fw-bold mb-2">Melhoramentos</h6>
+             <ul class="list-group list-group-flush magia-descricao">
+               ${melhoramentos.map(m => `
+                 <li class="list-group-item px-0">
+                   <span class="badge bg-secondary me-2"> + ${m.custo}</span>
+                   ${m.efeito}
+                 </li>
+               `).join('')}
+             </ul>
+           </div>`
+        : '';
 
-  const melhoramentosHTML = melhoramentos?.length
-    ? `<div class="bg-white border rounded p-3">
-         <h6 class="fw-bold mb-2">Melhoramentos</h6>
-         <ul class="list-group list-group-flush magia-descricao">
-           ${melhoramentos.map(m => `
-             <li class="list-group-item px-0">
-               <span class="badge bg-secondary me-2"> + ${m.custo}</span>
-               ${m.efeito}
-             </li>
-           `).join('')}
-         </ul>
-       </div>`
-    : '';
+      jQuery('#modalMagiaLabel').text(nome);
+      jQuery('#modalMagiaBody').html(`
+        <div class="carta-rpg">
+          ${atributosHTML}
+          ${descricaoHTML}
+          ${melhoramentosHTML}
+        </div>
+      `);
 
-  jQuery('#modalMagiaLabel').text(nome);
-  jQuery('#modalMagiaBody').html(`
-    <div class="carta-rpg">
-      ${atributosHTML}
-      ${descricaoHTML}
-      ${melhoramentosHTML}
-    </div>
-  `);
-
-  new bootstrap.Modal(document.getElementById('modal-magia')).show();
-}
+      new bootstrap.Modal(document.getElementById('modal-magia')).show();
+    }
 
     function preencherOpcoesDeFiltro($tipo, $circulo, $escola, tipos, circulos, escolas) {
       tipos.forEach((t) => $tipo.append(`<option value="${t}">${t}</option>`));
@@ -167,28 +304,27 @@ function exibirModalMagia(nome, tipo, circulo, escola, descricao, info, melhoram
       escolas.forEach((e) => $escola.append(`<option value="${e}">${e}</option>`));
     }
 
-    function configurarFiltros($nome, $tipo, $circulo, $escola, $btnLimpar, cards) {
+    function configurarFiltros($nome, $tipo, $circulo, $escola, $btnLimpar) {
       function aplicarFiltros() {
         const nomeFiltro = $nome.val().toLowerCase().trim();
         const tipoFiltro = $tipo.val();
         const circuloFiltro = $circulo.val();
         const escolaFiltro = $escola.val();
 
-        cards.forEach((card) => {
-          const $el = jQuery(card);
-          const nome = $el.find('.card-title').text().toLowerCase();
-          const tipo = $el.data('tipo');
-          const circulo = $el.data('circulo').toString();
-          const escola = $el.data('escola');
+        magiasFiltradas = todasAsMagias.filter((magia) => {
+          const nome = magia.nome.toLowerCase();
+          const tipo = magia.tipo;
+          const circulo = magia.circulo.toString();
+          const escola = magia.escola;
 
-          const mostrar =
-            nome.includes(nomeFiltro) &&
-            (!tipoFiltro || tipoFiltro === tipo) &&
-            (!circuloFiltro || circuloFiltro === circulo) &&
-            (!escolaFiltro || escolaFiltro === escola);
-
-          $el.toggle(mostrar);
+          return nome.includes(nomeFiltro) &&
+                 (!tipoFiltro || tipoFiltro === tipo) &&
+                 (!circuloFiltro || circuloFiltro === circulo) &&
+                 (!escolaFiltro || escolaFiltro === escola);
         });
+
+        paginaAtual = 1; // Resetar para primeira página quando filtrar
+        exibirPagina();
       }
 
       $nome.on('input', aplicarFiltros);
@@ -206,4 +342,3 @@ function exibirModalMagia(nome, tipo, circulo, escola, descricao, info, melhoram
     }
   });
 </script>
-

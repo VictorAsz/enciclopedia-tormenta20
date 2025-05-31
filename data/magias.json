@@ -138,30 +138,6 @@
         { "custo": 7, "efeito": "Você pode alterar ou apagar as memórias das últimas 24 horas."}
     ]
 },
-"amarras_etereas": {
-    "id": 9,
-    "nome": "Amarras Etéreas",
-    "tipo": "Arcana",
-    "circulo": 2,
-    "escola": "Convocação",
-    "info": {
-        "execucao": "Padrão",
-        "alcance": "Médio",
-        "alvo": "1 criatura",
-        "duracao": "Cena",
-        "resistencia": "-"
-    },
-    "descricao": "Três laços de energia surgem do chão e se enroscam no alvo, deixando-o agarrado. A vítima pode tentar se livrar, gastando uma ação padrão para fazer um teste de Atletismo (CD igual à da magia). Se passar, destrói um laço, mais um laço adicional para cada 2 pontos pelos quais superou a CD. Os laços também podem ser atacados e destruídos: cada um tem Defesa 10, 10 PV, RD 5 e imunidade a dano mágico. Se todos os laços forem destruídos, a magia é dissipada. Por serem feitos de energia, os laços afetam criaturas incorpóreas.",
-    "truque": {
-        "existe": false,
-        "descricao": ""
-    },
-    "melhoramentos": [
-        { "custo": 2, "efeito": "Aumenta o número de alvos em +1." },
-        { "custo": 2, "efeito": "Aumenta o número de laços em um alvo a sua escolha em +1."},
-        { "custo": 3, "efeito": "Em vez do normal, cada laço é destruído automaticamente com um único ataque bem-sucedido; porém, cada laço destruído libera um choque de energia que causa 1d6+1 pontos de dano de essência na criatura amarrada. Requer 3º círculo." }
-    ]
-},
 "amedrontar": {
     "id": 10,
     "nome": "Amedrontar",
