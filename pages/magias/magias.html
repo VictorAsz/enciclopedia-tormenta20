@@ -75,7 +75,7 @@
 
 
     function criarCardMagia(magia, tipos, circulos, escolas) {
-      const { nome, tipo, circulo, escola, descricao, info = {} } = magia;
+      const { nome, tipo, circulo, escola, descricao, info, melhoramentos = {} } = magia;
 
       if (!nome || !tipo || !circulo || !escola) return null;
 
@@ -101,7 +101,7 @@
         </div>
       `);
 
-      card.on('click', () => exibirModalMagia(nome, tipo, circulo, escola, descricao, info));
+      card.on('click', () => exibirModalMagia(nome, tipo, circulo, escola, descricao, info, melhoramentos));
       return card;
     }
 
@@ -112,38 +112,52 @@
     }
 
 
-    function exibirModalMagia(nome, tipo, circulo, escola, descricao, info) {
-      const atributosHTML = `
-        <div class="row g-3 mb-3">
-          ${criarColunaInfo('Tipo', tipo)}
-          ${criarColunaInfo('Círculo', `${circulo}º`)}
-          ${criarColunaInfo('Escola', escola)}
-          ${criarColunaInfo('Execução', info.execucao)}
-          ${criarColunaInfo('Alcance', info.alcance)}
-          ${criarColunaInfo('Alvo', info.alvo)}
-          ${criarColunaInfo('Duração', info.duracao)}
-          ${criarColunaInfo('Resistência', info.resistencia)}
-        </div>
-      `;
+function exibirModalMagia(nome, tipo, circulo, escola, descricao, info, melhoramentos = []) {
+  const atributosHTML = `
+    <div class="row g-3 mb-3">
+      ${criarColunaInfo('Tipo', tipo)}
+      ${criarColunaInfo('Círculo', `${circulo}º`)}
+      ${criarColunaInfo('Escola', escola)}
+      ${criarColunaInfo('Execução', info.execucao)}
+      ${criarColunaInfo('Alcance', info.alcance)}
+      ${criarColunaInfo('Alvo', info.alvo)}
+      ${criarColunaInfo('Duração', info.duracao)}
+      ${criarColunaInfo('Resistência', info.resistencia)}
+    </div>
+  `;
 
-      const descricaoHTML = descricao
-        ? `<div class="bg-light border rounded p-3" style="white-space: pre-line;">
-            <h6 class="fw-bold mb-2">Descrição</h6>
-             <span class="magia-descricao"> <p class="mb-0">${descricao}</p> </span>
-          </div>`
-        : '';
+  const descricaoHTML = descricao
+    ? `<div class="bg-light border rounded p-3 pt-0 mb-3" style="white-space: pre-line;">
+         <h6 class="fw-bold mb-2">Descrição</h6>
+         <p class="mb-0 magia-descricao">${descricao}</p>
+       </div>`
+    : '';
 
-      jQuery('#modalMagiaLabel').text(nome);
-      jQuery('#modalMagiaBody').html(`
-        <div class="carta-rpg">
-          ${atributosHTML}
-          ${descricaoHTML} 
-        </div>
-      `);
+  const melhoramentosHTML = melhoramentos?.length
+    ? `<div class="bg-white border rounded p-3">
+         <h6 class="fw-bold mb-2">Melhoramentos</h6>
+         <ul class="list-group list-group-flush magia-descricao">
+           ${melhoramentos.map(m => `
+             <li class="list-group-item px-0">
+               <span class="badge bg-secondary me-2"> + ${m.custo}</span>
+               ${m.efeito}
+             </li>
+           `).join('')}
+         </ul>
+       </div>`
+    : '';
 
-      new bootstrap.Modal(document.getElementById('modal-magia')).show();
-    }
+  jQuery('#modalMagiaLabel').text(nome);
+  jQuery('#modalMagiaBody').html(`
+    <div class="carta-rpg">
+      ${atributosHTML}
+      ${descricaoHTML}
+      ${melhoramentosHTML}
+    </div>
+  `);
 
+  new bootstrap.Modal(document.getElementById('modal-magia')).show();
+}
 
     function preencherOpcoesDeFiltro($tipo, $circulo, $escola, tipos, circulos, escolas) {
       tipos.forEach((t) => $tipo.append(`<option value="${t}">${t}</option>`));
