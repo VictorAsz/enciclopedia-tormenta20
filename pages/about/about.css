@@ -6,7 +6,6 @@ body {
   display: flex;
   flex-direction: column;
 }
-
 .about-title {
   color: #8b0000;
   text-align: center;
@@ -23,9 +22,7 @@ body {
   border: 1px solid #ddd;
   border-radius: 0.7rem;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
-
 }
-
 .about-text {
   font-size: 1.1rem;
   text-align: center;
@@ -34,15 +31,3 @@ body {
   margin-top: 1rem;
 }
 
-
-  @keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-}

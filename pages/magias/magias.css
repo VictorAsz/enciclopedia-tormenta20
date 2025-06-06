@@ -8,7 +8,6 @@
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-
 body {
   font-family: 'Cinzel', serif;
   background-color: #ffffff;
@@ -138,16 +137,19 @@ h2 {
   background-color: #fdfcf5 !important;
 }
 
-
-
-  @keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
+.page-link {
+  color: #8B0000;
 }
+.page-link:hover {
+  color: #a30000; 
+}
+.page-item.active .page-link {
+  background-color: #8B0000;
+  border-color: #8B0000;
+  color: white; 
+}
+
+.page-item.disabled .page-link {
+  color: #999;
+}
+
