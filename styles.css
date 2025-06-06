@@ -9,5 +9,16 @@
     opacity: 1;
     transform: translateY(0);
   }
-
 }
+
+  .navbar-toggler {
+    border: none;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 0.25rem 0.5rem; 
+  } 
+
+  .navbar-toggler:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
