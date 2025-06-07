@@ -10,7 +10,7 @@ jQuery(document).ready(function () {
 
     //Pega o HTML do modal e coloca no body
     carregarModalEMagias();
-  
+
   
     // ============================= PAGINA ================================
 
@@ -226,7 +226,7 @@ jQuery(document).ready(function () {
         `);
         $paginacao.append($proximo);
 
-        // Evento de clique nos botões de página
+        // Listener de clique para os botões
         $paginacao.find('a.page-link').on('click', function (e) {
             e.preventDefault();
             const novaPagina = parseInt(jQuery(this).data('pagina'));
